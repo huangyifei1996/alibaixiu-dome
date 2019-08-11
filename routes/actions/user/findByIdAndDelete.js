@@ -33,14 +33,14 @@ module.exports = async (req, res) => {
 		// 通过验证
 		for (const item of ids) {
 			// 删除用户
-			let user = await User.findByIdAndDelete(item);
+			 let user = await User.findByIdAndDelete(item);
 			// 将删除的用户存储在数组中
-			result.push(user);
+			 result.push(user);
 			// 如果缩略图存在
-			if (user.avatar) {
-				// 删除缩略图
-				await unlink(path.join(__dirname, '../', '../', 'public', 'uploads', user.avatar));
-			}
+			// if (user.avatar) {
+			// 	// 删除缩略图
+			// 	await unlink(path.join(__dirname, '../', '../', 'public', 'uploads', user.avatar));
+			// }
 		}
 		// 响应
 		res.send(result);

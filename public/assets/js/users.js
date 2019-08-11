@@ -33,7 +33,7 @@ $('#userAdd').on('click', function () {
 $('#avatar').on('change', function () {
 
     var formData = new FormData();
-
+    // 把用户选择的文件添加到 formData对象中
     formData.append('avatar', this.files[0]);
 
     $.ajax({
@@ -66,7 +66,7 @@ $('tbody').on('click', '.edit', function () {
     var imgSrc = trObj.children(1).children('img').attr('src');
     // 将图片的地址写入到隐藏域 
     $('#hiddenAvatar').val(imgSrc);
-    
+
     if (imgSrc) {
         // 如果imgSrc有值 
         $('#preview').attr('src', imgSrc);
@@ -94,7 +94,7 @@ $('tbody').on('click', '.edit', function () {
     } else {
         $('#normal').prop('checked', true);
     }
-     // 当我们点击编辑按钮时 将添加按钮隐藏 同时将修改按钮 显示出来 
+    // 当我们点击编辑按钮时 将添加按钮隐藏 同时将修改按钮 显示出来 
     $("#userAdd").hide();
     $('#userEdit').show();
 })
@@ -109,25 +109,105 @@ $('#userEdit').on('click', function () {
             // 我们只是将数据库里面的数据给修改 但是我们将userArr这个数组里面的元素给修改
             // 我们要从userArr这个数组中 将要修改这个数组元素找出来 
             var index = userArr.findIndex(item => item._id == userId);
-              // 根据这个index找到数组的这个元素 将它的数据更新 
+            // 根据这个index找到数组的这个元素 将它的数据更新 
             userArr[index] = res;
-             // 调用render方法 重新渲染页面 
+            // 调用render方法 重新渲染页面 
             render(userArr);
 
-             // 修改用户以后将表单数据还原
-             $('#userForm > h2').text('添加新用户');
-             $('#hiddenAvatar').val("");
-             $('#preview').attr('src',"../assets/img/default.png");
-             $('#userAdd').show();
-             $('#userEdit').hide();
-             $('#email').val("");
-             $('#nickName').val("");
-             $('#admin').prop('checked',false);
-             $('#normal').prop('checked',false);
-             $('#jh').prop('checked',false);
-             $('#wjh').prop('checked',false);
- 
-
+            // 修改用户以后将表单数据还原
+            $('#userForm > h2').text('添加新用户');
+            $('#hiddenAvatar').val("");
+            $('#preview').attr('src', "../assets/img/default.png");
+            $('#userAdd').show();
+            $('#userEdit').hide();
+            $('#email').val("");
+            $('#nickName').val("");
+            $('#admin').prop('checked', false);
+            $('#normal').prop('checked', false);
+            $('#jh').prop('checked', false);
+            $('#wjh').prop('checked', false);
         }
     })
+})
+
+// 删除一个用户功能
+$('tbody').on('click', '.del', function () {
+    if (window.confirm('你确定要删除吗')) {
+        // 获取id
+        var id = $(this).parent().attr('data-id');
+        $.ajax({
+            type: 'delete',
+            url: '/users/' + id,
+            success: function (res) {
+                // 查询数组元素中的id 和 数据库返回数据的id 是否一致  相等就返回当前元素索引
+                var index = userArr.findIndex(item => item._id == res._id);
+                // 删除数组中的数据
+                userArr.splice(index, 1);
+                // 重新渲染页面
+                render(userArr);
+            }
+        })
+    }
+})
+// 正选反选 
+$('thead input').on('click', function () {
+    // 查询元素input 的选择状态  选中就是true
+    var flag = $(this).prop('checked');
+    // 让下面复选框和全选一致
+    $('tbody input').prop('checked', flag);
+    // 让删除多个按钮 显时和隐藏
+    if (flag) {
+        $('.btn-sm').show();
+    } else {
+        $('.btn-sm').hide();
+    }
+
+})
+//复选按钮  
+$('tbody').on('click', 'input', function () {
+    // 如果input的总数量 等于 选中input 就激活全选按钮
+    if ($('tbody input').length == $('tbody input:checked').length) {
+        $('thead input').prop('checked', true);
+    } else {
+        $('thead input').prop('checked', false);
+    }
+    // 选中的input 大于 1 就显示 删除多个按钮
+    if ($('tbody input:checked').length > 1) {
+        $('.btn-sm').show();
+    } else {
+        $('.btn-sm').hide();
+    }
+})
+// 删除多个
+$('.btn-sm').on('click', function () {
+    // 用于存储删除 的 id 
+    var ids = [];
+    // 返回选中状态的 表单控件
+    var checkUser = $('tbody input:checked');
+
+    // console.log(checkUser);
+    
+    checkUser.each(function (k, v) {
+        // 获取id
+        var id = v.parentNode.parentNode.children[6].getAttribute('data-id');
+        // 把id放进数组
+        ids.push(id);
+
+        // console.log(id);
+        $.ajax({
+            type: 'delete',
+            url: '/users/' + ids.join('-'),
+            success: function (res) {
+                res.forEach(e=>{
+                    var index = userArr.findIndex(item=>item._id == e._id);
+
+                    userArr.splice(index,1);
+                    
+                    render(userArr);
+                })
+            }
+        })
+
+    })
+
 })
