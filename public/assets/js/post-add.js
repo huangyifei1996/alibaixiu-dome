@@ -57,4 +57,69 @@ $('#pAdd').on('click', function () {
     })
 })
 
-// 
+// 修改文章
+var id = getUrl('id');
+// console.log(id);
+
+if(id != -1){
+    $.ajax({
+        type:"get",
+        url:'/posts/'+id,
+        success:function(res){
+            console.log(res);
+            
+            $('#pEdit').show();
+            $('#pAdd').hide();
+
+            // 将标题 内容 时间 显示出来
+            $('#title').val(res.title);
+            $('#content').val(res.content);
+            $('#created').val(res.createAt && res.createAt.substr(0,16));
+
+            var coption = $('#category > option');
+
+            coption.each(function(k,v){
+                if($(v).attr('value')==res.createAt){
+                    $(v).prop('selected',true);
+                }
+            })
+
+            var soption = $('#category > option');
+
+            soption.each(function(k,v){
+                if($(v).attr('value')==res.state){
+                    $(v).prop('selected',true);
+                }
+            })
+
+            $('#hidden').val(res.thumbnail);
+
+            $('#pImg').show().attr('src',res.thumbnail);
+        }
+    })
+}
+
+$('#pEdit').on('click',function(){
+    var formData = $('#pForm').serialize();
+    $.ajax({
+        type:'put',
+        url:'/posts/'+id,
+        data:formData,
+        success:function(res){
+            location.href = '/admin/posts.html';
+        }
+    })
+})
+//定义查询地址栏参数函数
+function getUrl(name){
+    // 获取?之后的参数
+    var paramsAry = location.search.substr(1).split('&');
+
+    for(var i = 0;i<paramsAry.length;i++){
+        var tmp = paramsAry[i].split('=');
+        if(tmp[0]==name){
+            return tmp[1];
+        }
+    }
+    return -1;
+}
